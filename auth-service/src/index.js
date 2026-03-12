@@ -13,4 +13,4 @@ app.use('/api/auth', authRoutes);
 
 app.get('/api/auth/health', (_, res) => res.json({ status:'ok', service:'auth-service' }));
 
-app.listen(PORT, () => console.log([auth-service] Running on port ${PORT}));
+app.listen(PORT, () => console.log(`[auth-service] Running on port ${PORT}`));
