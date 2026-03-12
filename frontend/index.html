@@ -1,185 +1,137 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔐 Task Board — Final Lab</title>
-  <style>
-    /* ── นำ CSS จาก Week 12 index.html มาทั้งหมด ── */
-    /* ── (copy จาก :root { } ถึง @keyframes spin) ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0f172a; --surface: #1e293b; --surface2: #273448;
-      --border: #334155; --text: #e2e8f0; --muted: #94a3b8;
-      --blue: #3b82f6; --green: #22c55e; --yellow: #f59e0b;
-      --red: #ef4444; --purple: #a855f7;
-    }
-    /* ... (copy CSS จาก Week 12) ... */
-  </style>
+    <meta charset="UTF-8">
+    <title>Task Board (Set 1)</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .task-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .nav { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .btn-link { background: #28a745; width: auto; padding: 10px 20px; border-radius: 5px; color: white; text-decoration: none; display: inline-block;}
+    </style>
 </head>
 <body>
-
-<!-- ════ AUTH PAGE ════ -->
-<div id="auth-page">
-  <div class="auth-box">
-    <div class="auth-logo">🔐</div>
-    <div class="auth-title">Task Board</div>
-    <div class="auth-subtitle">Final Lab — Security Architecture</div>
-
-    <!-- Login Form เท่านั้น (ไม่มี Register tab) -->
-    <div id="login-form">
-      <div class="form-group">
-        <label>Email</label>
-        <input id="login-email" type="email" value="alice@lab.local" placeholder="you@lab.local">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input id="login-password" type="password" value="alice123" placeholder="password">
-      </div>
-      <button class="btn-primary" onclick="doLogin()">เข้าสู่ระบบ</button>
-    </div>
-
-    <div id="auth-msg"></div>
-
-    <!-- Seed users hint -->
-    <div class="auth-hint" style="margin-top:1rem;padding:.75rem;background:rgba(59,130,246,.1);border-radius:.5rem;font-size:.82rem">
-      <strong>🔑 Seed Users:</strong><br>
-      alice@lab.local / alice123 (member)<br>
-      bob@lab.local / bob456 (member)<br>
-      admin@lab.local / adminpass (admin)
-    </div>
-  </div>
-</div>
-
-<!-- ════ MAIN APP ════ -->
-<div id="app-page" class="hidden">
-  <nav class="sidebar">
-    <div class="sidebar-logo">📋 Task Board</div>
-    <div class="sidebar-nav">
-      <button class="nav-item active" data-page="tasks" onclick="showPage('tasks')">
-        <span class="nav-icon">✅</span> Tasks
-        <span class="badge-count" id="task-count">0</span>
-      </button>
-      <button class="nav-item" data-page="profile" onclick="showPage('profile')">
-        <span class="nav-icon">👤</span> Profile & JWT
-      </button>
-      <!-- Log Dashboard (เปิดหน้าใหม่) -->
-      <a href="logs.html" target="_blank" class="nav-item" style="text-decoration:none;">
-        <span class="nav-icon">📊</span> Log Dashboard
-        <span style="margin-left:auto;font-size:.7rem;color:var(--muted)">↗</span>
-      </a>
-    </div>
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
-        <div class="user-info-small">
-          <div class="name" id="sidebar-name">—</div>
-          <span class="role-badge" id="sidebar-role-badge">—</span>
+    <div class="container">
+        <div id="login-section">
+            <h2>🔒 Login to Task Board</h2>
+            <input type="email" id="email" placeholder="Email (e.g., alice@lab.local)" value="alice@lab.local">
+            <input type="password" id="password" placeholder="Password (e.g., alice123)" value="alice123">
+            <button onclick="login()">Login</button>
+            <p id="login-error" style="color: red;"></p>
         </div>
-        <button class="btn-logout" onclick="doLogout()" title="Logout">✕</button>
-      </div>
+
+        <div id="task-section" class="hidden">
+            <div class="nav">
+                <h2>📋 My Tasks (<span id="user-name"></span>)</h2>
+                <div>
+                    <a href="logs.html" class="btn-link">📊 View Logs</a>
+                    <button onclick="logout()" style="background: #dc3545; width: auto; padding: 10px 20px;">Logout</button>
+                </div>
+            </div>
+
+            <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <h3>➕ Add New Task</h3>
+                <input type="text" id="new-task-title" placeholder="Task Title">
+                <button onclick="createTask()">Add Task</button>
+            </div>
+
+            <div id="tasks-container">Loading tasks...</div>
+        </div>
     </div>
-  </nav>
 
-  <div class="main-content">
-    <!-- TASKS PAGE — copy จาก Week 12 ทั้งหมด -->
-    <div id="page-tasks"> <!-- ... เหมือน Week 12 ... --> </div>
+    <script>
+        const API_URL = ''; // ใช้ Relative path เพราะรันผ่าน Nginx เดียวกัน
+        
+        // เช็คว่าเคย Login ไว้หรือยัง
+        if (localStorage.getItem('token')) {
+            showTaskBoard();
+        }
 
-    <!-- PROFILE PAGE — copy จาก Week 12 ทั้งหมด -->
-    <div id="page-profile" class="hidden"> <!-- ... เหมือน Week 12 ... --> </div>
-  </div>
-</div>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.user.username);
+                    showTaskBoard();
+                } else {
+                    document.getElementById('login-error').innerText = data.error || 'Login failed';
+                }
+            } catch (err) {
+                document.getElementById('login-error').innerText = 'Server error';
+            }
+        }
 
-<!-- Modals + Toast — copy จาก Week 12 -->
+        function showTaskBoard() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('task-section').classList.remove('hidden');
+            document.getElementById('user-name').innerText = localStorage.getItem('username');
+            fetchTasks();
+        }
 
-<script>
-/* ── STATE ── */
-const API  = '';           // ใช้ relative URL (Nginx จัดการ)
-let token  = localStorage.getItem('jwt_token');
-let currentUser = null;
-let allTasks = [];
-let currentFilter = 'ALL';
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('task-section').classList.add('hidden');
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        }
 
-/* ── AUTH ── (ลบ doRegister() ออก) ── */
-async function doLogin() {
-  const email    = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  if (!email || !password) { showAuthMsg('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+        async function fetchTasks() {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/api/tasks/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(res.status === 401) return logout(); // ถ้า Token หมดอายุให้เตะออก
+            
+            const data = await res.json();
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+            
+            if(data.tasks && data.tasks.length > 0) {
+                data.tasks.forEach(task => {
+                    container.innerHTML += `
+                        <div class="task-item">
+                            <strong>${task.title}</strong> - Status: <em>${task.status}</em> 
+                            <br><small>Created by: ${task.username}</small>
+                        </div>
+                    `;
+                });
+            } else {
+                container.innerHTML = '<p>No tasks found. Create one above!</p>';
+            }
+        }
 
-  const res  = await fetch(`${API}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  });
-  const data = await res.json();
+        async function createTask() {
+            const title = document.getElementById('new-task-title').value;
+            const token = localStorage.getItem('token');
+            if(!title) return alert('Please enter a title');
 
-  if (res.ok) {
-    token = data.token;
-    localStorage.setItem('jwt_token', token);
-    initApp(data.user);
-  } else {
-    showAuthMsg('❌ ' + (data.error || 'Login ล้มเหลว'), 'error');
-  }
-}
-
-function showAuthMsg(msg, type) {
-  const el = document.getElementById('auth-msg');
-  el.className = `auth-msg ${type}`;
-  el.textContent = msg;
-}
-
-function doLogout() {
-  localStorage.removeItem('jwt_token');
-  token = null; currentUser = null; allTasks = [];
-  document.getElementById('app-page').classList.add('hidden');
-  document.getElementById('auth-page').classList.remove('hidden');
-}
-
-/* ── APP INIT ── */
-async function initApp(user) {
-  currentUser = user;
-  document.getElementById('auth-page').classList.add('hidden');
-  document.getElementById('app-page').classList.remove('hidden');
-  const initials = (user.username || user.email || '?').charAt(0).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initials;
-  document.getElementById('sidebar-name').textContent   = user.username || user.email;
-  const rb = document.getElementById('sidebar-role-badge');
-  rb.textContent = user.role;
-  rb.className   = `role-badge role-${user.role}`;
-  showPage('tasks');
-}
-
-/* ── NAVIGATION ── (ลบ users page ออก) ── */
-function showPage(page) {
-  ['tasks','profile'].forEach(p => {
-    document.getElementById(`page-${p}`).classList.toggle('hidden', p !== page);
-    const btn = document.querySelector(`[data-page="${p}"]`);
-    if (btn) btn.classList.toggle('active', p === page);
-  });
-  if (page === 'tasks')   loadTasks();
-  if (page === 'profile') loadProfile();
-}
-
-/* ── TASKS, PROFILE, JWT INSPECTOR ──
-   Copy ทั้งหมดจาก Week 12 app.js
-   (loadTasks, renderTasks, openCreateModal,
-    submitTask, confirmDelete, loadProfile,
-    renderJwtInspector, escHtml)
-*/
-
-// ... (copy functions จาก Week 12) ...
-
-/* ── AUTO-LOGIN ── */
-if (token) {
-  (async () => {
-    const res  = await fetch(`${API}/api/auth/verify`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (data.valid) initApp(data.user);
-    else { localStorage.removeItem('jwt_token'); token = null; }
-  })();
-}
-</script>
+            await fetch(`${API_URL}/api/tasks/`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title })
+            });
+            
+            document.getElementById('new-task-title').value = '';
+            fetchTasks();
+        }
+    </script>
 </body>
 </html>
