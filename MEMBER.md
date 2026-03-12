@@ -8,10 +8,10 @@
 ## Members
 ### Member 1 นาย ธนกฤต อินทจักร์ (67543206055-5)
 - งาน Set 1:Nginx / HTTPS / Gateway, Auth Service, Task Service, Database
-- งาน Set 2:
+- งาน Set 2: User Service, แยก Database Architecture (Auth-DB, Task-DB, User-DB)
 ### Member 2 นางสาว ฑิตฐิตา ประจำเมือง (67543206007-6)
 - งาน Set 1:Frontend Main App, Frontend Log Viewer, Logging Integration, Documentation / Testing
-- งาน Set 2:
+- งาน Set 2:Gateway Strategy A & B (Nginx), Railway Cloud Deployment, Documentation
 
 ## Responsibility Mapping
 - Nginx / HTTPS / Gateway: นาย ธนกฤต อินทจักร์
